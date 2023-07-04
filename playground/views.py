@@ -24,6 +24,23 @@ class SubscribeEmailView(APIView):
             return Response(data=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class SubscribeEmailWSView(APIView):
+    def post(self, request):
+        """
+        Use Websocket to get notification of Celery task
+        """
+        try:
+            serializer = EmailSubscribeSerializer(data=request.data)
+            if serializer.is_valid():
+                task = mail_chimp_subscribe.delay(serializer.data.get("email"))
+                return Response(
+                    data={"task_id": task.task_id}, status=status.HTTP_201_CREATED
+                )
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(data=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class TaskStatusView(APIView):
     def get(self, request, task_id: str):
         if not task_id:
