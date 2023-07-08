@@ -28,8 +28,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-# Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -86,7 +84,9 @@ CHANNEL_LAYERS = {
     },
 }
 
-# Database
+############
+# Database #
+############
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
@@ -100,8 +100,9 @@ DATABASES = {
     }
 }
 
-
-# Password validation
+##################### #
+# Password validation #
+#######################
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -139,11 +140,15 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Celery configuration
+########################
+# Celery configuration #
+########################
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", "redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_BACKEND", "redis://127.0.0.1:6379/0")
 
-# DRF configuration
+#####################
+# DRF configuration #
+#####################
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     "DEFAULT_PERMISSION_CLASSES": [
