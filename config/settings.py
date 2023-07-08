@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
+from kombu import Queue
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,6 +29,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+# Application definition
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -38,6 +41,7 @@ INSTALLED_APPS = [
     # Third party apps
     "rest_framework",
     "channels",
+    "django_celery_beat",  # with this we can dynamically update beat configurations.
     # Custom apps
     "playground",
     "core",
@@ -84,9 +88,7 @@ CHANNEL_LAYERS = {
     },
 }
 
-############
-# Database #
-############
+# Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
@@ -100,9 +102,8 @@ DATABASES = {
     }
 }
 
-##################### #
-# Password validation #
-#######################
+
+# Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -140,11 +141,42 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-########################
-# Celery configuration #
-########################
+#########################
+# Celery Configurations #
+#########################
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", "redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_BACKEND", "redis://127.0.0.1:6379/0")
+# Default celery queue name is `celery`. So updated the name to `default` in order
+# to avoid confusion
+CELERY_TASK_DEFAULT_QUEUE = "default"
+# Force all queues to be explicitly listed in `CELERY_TASK_QUEUES` to help prevent typos
+# Also it prevents Celery from auto-creating queues for us that we don't have defined
+CELERY_TASK_CREATE_MISSING_QUEUES = False
+
+CELERY_TASK_QUEUES = (
+    # need to define default queue here or exception would be raised
+    Queue("default"),
+    Queue("high_priority"),
+    Queue("low_priority"),
+)
+
+
+# All tasks with a name that matches config.celery.* are
+# routed to the high_priority queue
+# dynamic task routing
+def route_task(name, args, kwargs, options, task=None, **kw):
+    if ":" in name:
+        queue, _ = name.split(":")
+        return {"queue": queue}
+    return {"queue": "default"}
+
+
+CELERY_TASK_ROUTES = (route_task,)
+
+
+# Celery Beat configurations added dynamically with django admin through
+# DatabaseScheduler.
+CELERY_BEAT_SCHEDULE = {}
 
 #####################
 # DRF configuration #

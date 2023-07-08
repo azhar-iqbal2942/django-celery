@@ -3,4 +3,6 @@
 set -o errexit
 set -o nounset
 
-python manage.py celery_worker
+watchfiles \
+  --filter python \
+  'celery -A config worker --loglevel=info -Q high_priority,default'

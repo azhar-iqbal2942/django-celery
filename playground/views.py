@@ -3,11 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from celery.result import AsyncResult
 from celery.utils.log import get_task_logger
-
-logger = get_task_logger(__name__)
-
 from .serializers import EmailSubscribeSerializer
 from .tasks import mail_chimp_subscribe
+
+logger = get_task_logger(__name__)
 
 
 class SubscribeEmailView(APIView):
